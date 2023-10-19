@@ -42,8 +42,4 @@ const startApolloServer = async () => {
   });
 };
 
-// if we're in production, serve client/build as static assets
-
-// app.use(routes);
-
 startApolloServer();
