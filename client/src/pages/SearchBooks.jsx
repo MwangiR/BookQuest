@@ -9,21 +9,15 @@ import { SAVE_BOOK } from '../utils/mutations';
 
 const SearchBooks = () => {
   const [saveBook, { error }] = useMutation(SAVE_BOOK);
-  // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
-  // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
-
-  // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
-  // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
-  // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
+    // Use the useEffect cleanup function to save `savedBookIds` to localStorage
     return () => saveBookIds(savedBookIds);
-  });
+  }, [savedBookIds]); // Include `savedBookIds` as a dependency to ensure it's saved when updated
 
-  // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
@@ -35,7 +29,7 @@ const SearchBooks = () => {
       const response = await searchGoogleBooks(searchInput);
 
       if (!response.ok) {
-        throw new Error('something went wrong!');
+        throw new Error('Something went wrong with the API request.'); // Adjust the error message
       }
 
       const { items } = await response.json();
@@ -55,16 +49,14 @@ const SearchBooks = () => {
     }
   };
 
-  // create function to handle saving a book to our database
   const handleSaveBook = async (bookId) => {
-    // find the book in `searchedBooks` state by the matching id
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
-    // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
-      return false;
+      console.error('Token is missing. User must be logged in to save a book.'); // Log an error
+      return;
     }
 
     try {
@@ -74,13 +66,15 @@ const SearchBooks = () => {
 
       if (data && data.saveBook) {
         setSavedBookIds([...savedBookIds, bookToSave.bookId]);
-      } else {
-        throw new Error('something went wrong!');
       }
 
-      // if book successfully saves to user's account, save book id to state
+      console.log(data);
+
+      // Assuming the save was successful, you can provide feedback here
+      console.log('Book saved successfully.');
     } catch (err) {
       console.error(err);
+      console.error('An error occurred while saving the book.'); // Log an error
     }
   };
 
@@ -127,15 +121,16 @@ const SearchBooks = () => {
                   ) : null}
                   <Card.Body>
                     <Card.Title>{book.title}</Card.Title>
-                    <p className='small'>Authors: {book.authors}</p>
+                    <p className='small'>Authors: {book.authors.join(', ')}</p>{' '}
+                    {/* Join author names if there are multiple authors */}
                     <Card.Text>{book.description}</Card.Text>
                     {Auth.loggedIn() && (
                       <Button
-                        disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
+                        disabled={savedBookIds.includes(book.bookId)} // Use includes to check if book is saved
                         className='btn-block btn-info'
                         onClick={() => handleSaveBook(book.bookId)}
                       >
-                        {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
+                        {savedBookIds.includes(book.bookId)
                           ? 'This book has already been saved!'
                           : 'Save this Book!'}
                       </Button>
