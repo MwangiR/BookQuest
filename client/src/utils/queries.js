@@ -4,6 +4,7 @@ export const GET_ME = gql`
   query ME {
     me {
       _id
+      username
       bookCount
       email
       savedBooks {
@@ -14,7 +15,6 @@ export const GET_ME = gql`
         link
         title
       }
-      username
     }
   }
 `;

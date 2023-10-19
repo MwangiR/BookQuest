@@ -9,6 +9,8 @@ import { REMOVE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(GET_ME);
+
+  console.log('testme', data);
   const [removeBook] = useMutation(REMOVE_BOOK);
   // const [userData, setUserData] = useState({});
   const userData = data?.me || {};
@@ -21,14 +23,15 @@ const SavedBooks = () => {
       return;
     }
     try {
-      const response = await removeBook({
-        variables: { bookId },
+      const { data } = await removeBook({
+        variables: { bookId: bookId },
       });
       // upon success, remove book's id from localStorage
-      if (!response || response.errors) {
+      if (data && data.removeBook) {
+        removeBookId(bookId);
+      } else {
         throw new Error('something went wrong!');
       }
-      removeBookId(bookId);
     } catch (err) {
       console.error(err);
     }
@@ -48,35 +51,40 @@ const SavedBooks = () => {
       </div>
       <Container>
         <h2 className='pt-5'>
-          {userData?.savedBooks.length
+          {userData.savedBooks && userData.savedBooks.length > 0
             ? `Viewing ${userData.savedBooks.length} saved ${
                 userData.savedBooks.length === 1 ? 'book' : 'books'
               }:`
             : 'You have no saved books!'}
         </h2>
         <Row>
-          {userData.savedBooks.map((book) => {
-            return (
-              <Col md='4' key={book.bookId}>
-                <Card key={book.bookId} border='dark'>
-                  {book.image ? (
-                    <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
-                  ) : null}
-                  <Card.Body>
-                    <Card.Title>{book.title}</Card.Title>
-                    <p className='small'>Authors: {book.authors}</p>
-                    <Card.Text>{book.description}</Card.Text>
-                    <Button
-                      className='btn-block btn-danger'
-                      onClick={() => handleDeleteBook(book.bookId)}
-                    >
-                      Delete this Book!
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            );
-          })}
+          {userData.savedBooks &&
+            userData.savedBooks.map((book) => {
+              return (
+                <Col md='4' key={book.bookId}>
+                  <Card key={book.bookId} border='dark'>
+                    {book.image ? (
+                      <Card.Img
+                        src={book.image}
+                        alt={`The cover for ${book.title}`}
+                        variant='top'
+                      />
+                    ) : null}
+                    <Card.Body>
+                      <Card.Title>{book.title}</Card.Title>
+                      <p className='small'>Authors: {book.authors}</p>
+                      <Card.Text>{book.description}</Card.Text>
+                      <Button
+                        className='btn-block btn-danger'
+                        onClick={() => handleDeleteBook(book.bookId)}
+                      >
+                        Delete this Book!
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              );
+            })}
         </Row>
       </Container>
     </>
