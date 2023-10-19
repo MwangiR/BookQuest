@@ -29,7 +29,12 @@ const LoginForm = () => {
     }
 
     try {
-      const response = await loginUser(userFormData);
+      const response = await loginUser({
+        variables: {
+          email: userFormData.email,
+          password: userFormData.password,
+        },
+      });
 
       if (!response.ok) {
         throw new Error('something went wrong!');
