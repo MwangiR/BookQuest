@@ -17,14 +17,15 @@ const SavedBooks = () => {
   const handleDeleteBook = async (bookId) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
     if (!token) {
-      return false;
+      console.error('User not logged in');
+      return;
     }
     try {
       const response = await removeBook({
         variables: { bookId },
       });
       // upon success, remove book's id from localStorage
-      if (!response) {
+      if (!response || response.errors) {
         throw new Error('something went wrong!');
       }
       removeBookId(bookId);
